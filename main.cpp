@@ -131,7 +131,7 @@ int parseMessage(oscpkt::Message msg, void* arg)
 	{
 		const char *ctrStr = trString.c_str();
 		printf("received /number %s\n", ctrStr);
-	    u8g2.setFont(u8g2_font_logisoso62_tn);
+		u8g2.setFont(u8g2_font_logisoso62_tn);
 		u8g2.drawStr(0, 0, ctrStr);
 		u8g2.sendBuffer();
 	} else if (msg.match("/display-text").popStr(text1).popStr(text2).popStr(text3).isOkNoMoreArgs())
@@ -169,40 +169,40 @@ int parseMessage(oscpkt::Message msg, void* arg)
 	} else if (msg.match("/waveform"))
 	{
 		oscpkt::Message::ArgReader args(msg);
-	    if(args)
-	    {
+		if(args)
+		{
 			const unsigned int nValues = args.nbArgRemaining();
-	    	float values[nValues];
-	    	for(unsigned int n = 0; n < nValues; ++n)
-	    	{
-	    		if(args.isFloat())
-	    		{
-		    		args.popFloat(values[n]);
-	    		} else if(args.isInt32()) {
-	    			int i;
-	    			args.popInt32(i);
-	    			values[n] = i;
-	    		} else {
-	    			fprintf(stderr, "Wrong type at argument %d\n", n);
-	    			return -1;
-	    		}
-	    	}
-	    	// now tenValues contains the 10 values.
-	        // prepare a bitmap:
-	        printf("received /waveform floats:");
-	        for(unsigned int n = 0; n < 10; ++n)
-	        	printf("%f ", values[n]);
-	        printf("\n");
+			float values[nValues];
+			for(unsigned int n = 0; n < nValues; ++n)
+			{
+				if(args.isFloat())
+				{
+					args.popFloat(values[n]);
+				} else if(args.isInt32()) {
+					int i;
+					args.popInt32(i);
+					values[n] = i;
+				} else {
+					fprintf(stderr, "Wrong type at argument %d\n", n);
+					return -1;
+				}
+			}
+			// now tenValues contains the 10 values.
+			// prepare a bitmap:
+			printf("received /waveform floats:");
+			for(unsigned int n = 0; n < 10; ++n)
+			printf("%f ", values[n]);
+			printf("\n");
 
-	        for(unsigned int x = 0; x < displayWidth; ++x)
-	        {
-	        	// we interpret each value as the vertical displacement and
-	        	// we want to draw a series of horizontal lines at the specified points
-	        	unsigned int valIdx = x * float(nValues) / displayWidth;
-	        	unsigned int y = values[valIdx] * displayHeight;
-	        	u8g2.drawPixel(x, y);
-	        }
-	    }
+			for(unsigned int x = 0; x < displayWidth; ++x)
+			{
+				// we interpret each value as the vertical displacement and
+				// we want to draw a series of horizontal lines at the specified points
+				unsigned int valIdx = x * float(nValues) / displayWidth;
+				unsigned int y = values[valIdx] * displayHeight;
+				u8g2.drawPixel(x, y);
+			}
+		}
 	} else
 	{
 		printf("unhandled message to: %s \n", msg.addressPattern().c_str());
