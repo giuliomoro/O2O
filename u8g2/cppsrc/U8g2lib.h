@@ -18954,6 +18954,11 @@ class U8G2_SH1106_128X64_NONAME_F_HW_I2C_LINUX : public U8G2 {
     u8g2_Setup_sh1106_i2c_128x64_noname_f(&u8g2, rotation, u8x8_byte_linux_i2c, u8x8_linux_i2c_delay);
   }
 };
+class U8G2_SSD1306_128X64_NONAME_F_HW_I2C_LINUX : public U8G2 {
+  public: U8G2_SSD1306_128X64_NONAME_F_HW_I2C_LINUX(const u8g2_cb_t *rotation) : U8G2() {
+    u8g2_Setup_ssd1306_i2c_128x64_noname_f(&u8g2, rotation, u8x8_byte_linux_i2c, u8x8_linux_i2c_delay);
+  }
+};
 #endif // __linux__
 
 class U8G2_BITMAP : public U8G2 {
