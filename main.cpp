@@ -179,6 +179,7 @@ int parseMessage(oscpkt::Message msg, void*)
 			bool found = popNumber(args, target);
 			if(found && args.isOkNoMoreArgs()) {
 #ifdef I2C_MUX
+				printf("Selecting /target %d\n", target);
 				gTca.select(target);
 #else // I2C_MUX
 				fprintf(stderr, "Multi-display mode is only available via I2C_MUX. /target %d ignored.\n", target);
