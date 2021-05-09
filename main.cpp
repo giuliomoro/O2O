@@ -93,6 +93,8 @@ times a second.
 #include <libraries/OscReceiver/OscReceiver.h>
 #include <unistd.h>
 #include "u8g2/cppsrc/U8g2lib.h"
+#include <vector>
+#include <algorithm>
 
 // #define I2C_MUX // allow I2C multiplexing to select different target displays (assuming it agrees with gTargetMode)
 const unsigned int gOledAddress = 0x3c;
@@ -150,6 +152,22 @@ static bool popNumber(oscpkt::Message::ArgReader& args, T& val)
 	return true;
 }
 
+static void switchTarget(int target)
+{
+	static std::vector<unsigned int> inited;
+	static int oldTarget;
+	if(oldTarget != target || inited.empty())
+		gTca.select(target);
+	if(target >= 0 && std::find(inited.begin(), inited.end(), target) == inited.end())
+	{
+		printf("Initialising target %d\n", target);
+		u8g2.initDisplay();
+		u8g2.setPowerSave(0);
+		inited.push_back(target);
+	}
+	target = oldTarget;
+}
+
 int parseMessage(oscpkt::Message msg, void*)
 {
 	u8g2.clearBuffer();
@@ -180,7 +198,7 @@ int parseMessage(oscpkt::Message msg, void*)
 			if(found && args.isOkNoMoreArgs()) {
 #ifdef I2C_MUX
 				printf("Selecting /target %d\n", target);
-				gTca.select(target);
+				switchTarget(target);
 #else // I2C_MUX
 				fprintf(stderr, "Multi-display mode is only available via I2C_MUX. /target %d ignored.\n", target);
 #endif // I2C_MUX
@@ -216,7 +234,7 @@ int parseMessage(oscpkt::Message msg, void*)
 		}
 		else {
 #ifdef I2C_MUX
-			gTca.select(target);
+			switchTarget(target);
 #else // I2C_MUX
 			fprintf(stderr, "Multi-display mode is only available via I2C_MUX. Target %d ignored.\n", target);
 #endif // I2C_MUX
