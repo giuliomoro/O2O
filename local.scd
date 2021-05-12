@@ -8,7 +8,7 @@
 ~displayOSC.sendMsg('/target', 2); // only works in stateful mode
 
 ~displayOSC.sendMsg('/osc-test');
-~displayOSC.sendMsg('/number', '012');
+~displayOSC.sendMsg('/number', 12);
 ~displayOSC.sendMsg('/display-text', 'one', 'two', 'three');
 ~displayOSC.sendMsg('/parameters', 0.1, 1.0, 1.0);
 ~displayOSC.sendMsg('/lfos', 0.1, 0.4, 1.0);
@@ -19,7 +19,7 @@
 // in "each" mode, the first argument to each message is the destination display
 ~tar = 2;
 ~displayOSC.sendMsg('/osc-test', ~tar);
-~displayOSC.sendMsg('/number', ~tar, '012');
+~displayOSC.sendMsg('/number', ~tar, 12);
 ~displayOSC.sendMsg('/display-text', ~tar, 'one', 'two', 'three');
 ~displayOSC.sendMsg('/parameters', ~tar, 0.1, 1.0, 1.0);
 ~displayOSC.sendMsg('/lfos', ~tar, 0.1, 0.4, 1.0);

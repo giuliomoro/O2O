@@ -259,15 +259,14 @@ int parseMessage(oscpkt::Message msg, void*)
 		}
 	} else if (msg.match("/number"))
 	{
-		std::string numberString;
-		if(!args.popStr(numberString).isOkNoMoreArgs())
+		int number;
+		if(!popNumber(args, number))
 			error = kWrongArguments;
 		else
 		{
-			const char *numStr = numberString.c_str();
-			printf("received /number %s\n", numStr);
+			printf("received /number %d\n", number);
 			u8g2.setFont(u8g2_font_logisoso62_tn);
-			u8g2.drawUTF8(0, 0, numStr);
+			u8g2.drawUTF8(0, 0, std::to_string(number).c_str());
 		}
 	} else if (msg.match("/display-text"))
 	{
