@@ -124,33 +124,6 @@ void interrupt_handler(int var)
 {
 	gStop = true;
 }
-template <typename T>
-static bool popNumber(oscpkt::Message::ArgReader& args, T& val)
-{
-	if (args.isInt32()) {
-		int32_t i;
-		args.popInt32(i);
-		val = i;
-	} else if (args.isInt64()) {
-		int64_t i;
-		args.popInt64(i);
-	} else if(args.isFloat()) {
-		float f;
-		args.popFloat(f);
-		val = f;
-	} else if(args.isDouble()) {
-		double d;
-		args.popDouble(d);
-		val = d;
-	} else if (args.isBool()) {
-		bool b;
-		args.popBool(b);
-		val = b;
-	} else {
-		return false;
-	}
-	return true;
-}
 
 #ifdef I2C_MUX
 static void switchTarget(int target)
@@ -196,8 +169,7 @@ int parseMessage(oscpkt::Message msg, void*)
 			error = kInvalidMode;
 		} else {
 			int target;
-			bool found = popNumber(args, target);
-			if(found && args.isOkNoMoreArgs()) {
+			if(args.popNumber(target).isOkNoMoreArgs()) {
 #ifdef I2C_MUX
 				printf("Selecting /target %d\n", target);
 				switchTarget(target);
@@ -212,34 +184,32 @@ int parseMessage(oscpkt::Message msg, void*)
 	} else if (msg.match("/targetMode")) {
 		stateMessage = true;
 		int mode;
-		bool found = popNumber(args, mode);
-		if(!found)
-			error = kWrongArguments;
-		else {
+		if(args.popNumber(mode).isOkNoMoreArgs())
+		{
 			if(mode != kTargetSingle && mode != kTargetStateful && mode != kTargetEach)
 				error = kOutOfRange;
 			else {
 				gTargetMode = (TargetMode)mode;
 				printf("Target mode: %d\n", mode);
 			}
-		}
+		} else
+			error = kWrongArguments;
 	}
 	if(!stateMessage && kTargetEach == gTargetMode)
 	{
 		// if we are in kTargetEach and the message is for a display, we need to peel off the
 		// first argument (which denotes the target display) before processing the message
 		int target;
-		bool found = popNumber(args, target);
-		if(!found) {
-			fprintf(stderr, "Target mode is \"Each\", therefore the first argument should be an int or float specifying the target display\n");
-			error = kWrongArguments;
-		}
-		else {
+		if(args.popNumber(target))
+		{
 #ifdef I2C_MUX
 			switchTarget(target);
 #else // I2C_MUX
 			fprintf(stderr, "Multi-display mode is only available via I2C_MUX. Target %d ignored.\n", target);
 #endif // I2C_MUX
+		} else {
+			fprintf(stderr, "Target mode is \"Each\", therefore the first argument should be an int or float specifying the target display\n");
+			error = kWrongArguments;
 		}
 	}
 
@@ -249,8 +219,10 @@ int parseMessage(oscpkt::Message msg, void*)
 		// nothing to do here, just avoid matching any of the others
 	} else if (msg.match("/osc-test"))
 	{
-		if(!args.isOkNoMoreArgs())
+		if(!args.isOkNoMoreArgs()){
 			error = kWrongArguments;
+			printf("WWWWWWWWW\n");
+		}
 		else {
 			printf("received /osc-test\n");
 			u8g2.setFont(u8g2_font_ncenB08_tr);
@@ -260,14 +232,14 @@ int parseMessage(oscpkt::Message msg, void*)
 	} else if (msg.match("/number"))
 	{
 		int number;
-		if(!popNumber(args, number))
-			error = kWrongArguments;
-		else
+		if(args.popNumber(number).isOkNoMoreArgs())
 		{
 			printf("received /number %d\n", number);
 			u8g2.setFont(u8g2_font_logisoso62_tn);
 			u8g2.drawUTF8(0, 0, std::to_string(number).c_str());
 		}
+		else
+			error = kWrongArguments;
 	} else if (msg.match("/display-text"))
 	{
 		std::string text1;
