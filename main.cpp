@@ -152,6 +152,7 @@ static bool popNumber(oscpkt::Message::ArgReader& args, T& val)
 	return true;
 }
 
+#ifdef I2C_MUX
 static void switchTarget(int target)
 {
 	static std::vector<unsigned int> inited;
@@ -167,6 +168,7 @@ static void switchTarget(int target)
 	}
 	target = oldTarget;
 }
+#endif // I2C_MUX
 
 int parseMessage(oscpkt::Message msg, void*)
 {
