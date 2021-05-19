@@ -55,9 +55,8 @@ Note that you will have to do this every time the Bela programme restarts.
 
 /number
 
-This prints a number to the screen which is received as a string and then cast to
-a char. Every time you click the bang above this message a random number will be
-generated and displayed on the screen.
+This prints a number to the screen which is received as a float. Every time you click the bang
+above this message a random number will be generated and displayed on the screen.
 
 /display-text
 
