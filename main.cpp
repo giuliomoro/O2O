@@ -95,11 +95,13 @@ times a second.
 #include <vector>
 #include <algorithm>
 
+const unsigned int gI2cBus = 1;
+
 // #define I2C_MUX // allow I2C multiplexing to select different target displays
 struct Display {U8G2 d; int mux;};
 std::vector<Display> gDisplays = {
 	// use `-1` as the last value to indicate that the display is not behind a mux, or a number between 0 and 7 for its muxed channel number
-	{ U8G2_SH1106_128X64_NONAME_F_HW_I2C_LINUX(U8G2_R0, 0x3c), -1},
+	{ U8G2_SH1106_128X64_NONAME_F_HW_I2C_LINUX(U8G2_R0, gI2cBus, 0x3c), -1},
 	// add more displays / addresses here
 };
 
@@ -110,7 +112,6 @@ const int gLocalPort = 7562; //port for incoming OSC messages
 #include "TCA9548A.h"
 const unsigned int gMuxAddress = 0x70;
 TCA9548A gTca;
-const unsigned int gI2cBus = 1; // TODO: this is only used by the muxer at the moment
 #endif // I2C_MUX
 
 /// Determines how to select which display a message is targeted to:

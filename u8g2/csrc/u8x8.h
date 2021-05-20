@@ -339,6 +339,7 @@ struct u8x8_struct
   uint8_t i2c_address;	/* a valid i2c adr. Initially this is 255, but this is set to something usefull during DISPLAY_INIT */
 					/* i2c_address is the address for writing data to the display */
 					/* usually, the lowest bit must be zero for a valid address */
+  uint8_t i2c_bus; /* the i2c bus, when more than one is available and can be selected */
   uint8_t i2c_started;	/* for i2c interface */
   //uint8_t device_address;	/* OBSOLETE???? - this is the device address, replacement for U8X8_MSG_CAD_SET_DEVICE */
   uint8_t utf8_state;		/* number of chars which are still to scan */
@@ -368,6 +369,8 @@ struct u8x8_struct
 #define u8x8_GetRows(u8x8) ((u8x8)->display_info->tile_height)
 #define u8x8_GetI2CAddress(u8x8) ((u8x8)->i2c_address)
 #define u8x8_SetI2CAddress(u8x8, address) ((u8x8)->i2c_address = (address))
+#define u8x8_GetI2CBus(u8x8) ((u8x8)->i2c_bus)
+#define u8x8_SetI2CBus(u8x8, bus) ((u8x8)->i2c_bus = (bus))
 
 #define u8x8_SetGPIOResult(u8x8, val) ((u8x8)->gpio_result = (val))
 #define u8x8_GetSPIClockPhase(u8x8) ((u8x8)->display_info->spi_mode & 0x01)  /* 0 means rising edge */

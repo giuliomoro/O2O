@@ -79,6 +79,7 @@ class U8G2 : public Print
     void setBusClock(uint32_t clock_speed) { u8g2_GetU8x8(&u8g2)->bus_clock = clock_speed; }
 
     void setI2CAddress(uint8_t adr) { u8g2_SetI2CAddress(&u8g2, adr); }
+    void setI2CBus(uint8_t bus) { u8g2_SetI2CBus(&u8g2, bus); }
     
     
     void enableUTF8Print(void) { cpp_next_cb = u8x8_utf8_next; }
@@ -18950,14 +18951,16 @@ extern "C" uint8_t u8x8_byte_linux_i2c(U8X8_UNUSED u8x8_t *u8x8, U8X8_UNUSED uin
 extern "C" uint8_t u8x8_linux_i2c_delay (u8x8_t * u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
 
 class U8G2_SH1106_128X64_NONAME_F_HW_I2C_LINUX : public U8G2 {
-  public: U8G2_SH1106_128X64_NONAME_F_HW_I2C_LINUX(const u8g2_cb_t *rotation, uint8_t address) : U8G2() {
+  public: U8G2_SH1106_128X64_NONAME_F_HW_I2C_LINUX(const u8g2_cb_t *rotation, uint8_t bus, uint8_t address) : U8G2() {
     u8g2_Setup_sh1106_i2c_128x64_noname_f(&u8g2, rotation, u8x8_byte_linux_i2c, u8x8_linux_i2c_delay);
+    setI2CBus(bus);
     setI2CAddress(address);
   }
 };
 class U8G2_SSD1306_128X64_NONAME_F_HW_I2C_LINUX : public U8G2 {
-  public: U8G2_SSD1306_128X64_NONAME_F_HW_I2C_LINUX(const u8g2_cb_t *rotation, uint8_t address) : U8G2() {
+  public: U8G2_SSD1306_128X64_NONAME_F_HW_I2C_LINUX(const u8g2_cb_t *rotation, uint8_t bus, uint8_t address) : U8G2() {
     u8g2_Setup_ssd1306_i2c_128x64_noname_f(&u8g2, rotation, u8x8_byte_linux_i2c, u8x8_linux_i2c_delay);
+    setI2CBus(bus);
     setI2CAddress(address);
   }
 };

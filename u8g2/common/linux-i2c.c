@@ -18,7 +18,6 @@ char filename[255];
 uint8_t data[BUFSIZ_I2C]; // just to be sure
 int idx = 0;
 // almost certainly the wrong place for this state!
-int adapter_nr = 1; /* probably dynamically determined */
 
 typedef struct {
     int file;
@@ -50,7 +49,7 @@ u8x8_byte_linux_i2c(u8x8_t *u8x8,
                 u8x8->private_state = ptr;
 		int addr = u8x8_GetI2CAddress(u8x8);
 		// ths open/setup? it seems to be a one-time setup
-		snprintf(filename, 19, "/dev/i2c-%d", adapter_nr);
+		snprintf(filename, 19, "/dev/i2c-%d", u8x8_GetI2CBus(u8x8));
 		int file = open(filename, O_RDWR);
 		if (file < 0) {
 			fprintf(stderr, "can't open i2c\n");
