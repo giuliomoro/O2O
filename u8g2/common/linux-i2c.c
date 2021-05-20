@@ -86,9 +86,9 @@ u8x8_byte_linux_i2c(u8x8_t *u8x8,
 		break;
 	default:
 		fprintf(stderr, "unknown msg type %d\n", msg);
-		return 0;
+		return 1;
 	}
-	return 1;
+	return 0;
 }
 
 
