@@ -95,10 +95,16 @@ times a second.
 #include <vector>
 #include <algorithm>
 
-// #define I2C_MUX // allow I2C multiplexing to select different target displays (assuming it agrees with gTargetMode)
-const unsigned int gOledAddress = 0x3c;
-U8G2_SH1106_128X64_NONAME_F_HW_I2C_LINUX u8g2(U8G2_R0);
-int gLocalPort = 7562; //port for incoming OSC messages
+// #define I2C_MUX // allow I2C multiplexing to select different target displays
+struct Display {U8G2 d; int mux;};
+std::vector<Display> gDisplays = {
+	// use `-1` as the last value to indicate that the display is not behind a mux, or a number between 0 and 7 for its muxed channel number
+	{ U8G2_SH1106_128X64_NONAME_F_HW_I2C_LINUX(U8G2_R0, 0x3c), -1},
+	// add more displays / addresses here
+};
+
+unsigned int gActiveTarget = 0;
+const int gLocalPort = 7562; //port for incoming OSC messages
 
 #ifdef I2C_MUX
 #include "TCA9548A.h"
@@ -124,30 +130,23 @@ void interrupt_handler(int var)
 	gStop = true;
 }
 
-#ifdef I2C_MUX
 static void switchTarget(int target)
 {
-	static std::vector<unsigned int> inited;
-	static int oldTarget;
-	if(oldTarget != target || inited.empty())
-		gTca.select(target);
-	if(target >= 0 && std::find(inited.begin(), inited.end(), target) == inited.end())
-	{
-		printf("Initialising target %d\n", target);
-		u8g2.initDisplay();
-		u8g2.setPowerSave(0);
-		inited.push_back(target);
-	}
-	target = oldTarget;
-}
+#ifdef I2C_MUX
+	if(target >= gDisplays.size())
+		return;
+	U8G2& u8g2 = gDisplays[target].d;
+	int mux = gDisplays[target].mux;
+	static int oldMux = -1;
+	if(oldMux != mux)
+		gTca.select(mux);
+	oldTarget = target;
 #endif // I2C_MUX
+	gActiveTarget = target;
+}
 
 int parseMessage(oscpkt::Message msg, void*)
 {
-	u8g2.clearBuffer();
-
-	int displayWidth = u8g2.getDisplayWidth();
-	int displayHeight = u8g2.getDisplayHeight();
 	float param1Value;
 	float param2Value;
 	float param3Value;
@@ -169,12 +168,8 @@ int parseMessage(oscpkt::Message msg, void*)
 		} else {
 			int target;
 			if(args.popNumber(target).isOkNoMoreArgs()) {
-#ifdef I2C_MUX
 				printf("Selecting /target %d\n", target);
 				switchTarget(target);
-#else // I2C_MUX
-				fprintf(stderr, "Multi-display mode is only available via I2C_MUX. /target %d ignored.\n", target);
-#endif // I2C_MUX
 			} else {
 				fprintf(stderr, "Argument to /target should be numeric (int or float)\n");
 				error = kWrongArguments;
@@ -194,6 +189,15 @@ int parseMessage(oscpkt::Message msg, void*)
 		} else
 			error = kWrongArguments;
 	}
+	if(gActiveTarget >= gDisplays.size())
+	{
+		fprintf(stderr, "Target %u out of range. Only %u displays are available\n", gActiveTarget, gDisplays.size());
+		return 1;
+	}
+	U8G2& u8g2 = gDisplays[gActiveTarget].d;
+	u8g2.clearBuffer();
+	int displayWidth = u8g2.getDisplayWidth();
+	int displayHeight = u8g2.getDisplayHeight();
 	if(!stateMessage && kTargetEach == gTargetMode)
 	{
 		// if we are in kTargetEach and the message is for a display, we need to peel off the
@@ -201,11 +205,7 @@ int parseMessage(oscpkt::Message msg, void*)
 		int target;
 		if(args.popNumber(target))
 		{
-#ifdef I2C_MUX
 			switchTarget(target);
-#else // I2C_MUX
-			fprintf(stderr, "Multi-display mode is only available via I2C_MUX. Target %d ignored.\n", target);
-#endif // I2C_MUX
 		} else {
 			fprintf(stderr, "Target mode is \"Each\", therefore the first argument should be an int or float specifying the target display\n");
 			error = kWrongArguments;
@@ -220,7 +220,6 @@ int parseMessage(oscpkt::Message msg, void*)
 	{
 		if(!args.isOkNoMoreArgs()){
 			error = kWrongArguments;
-			printf("WWWWWWWWW\n");
 		}
 		else {
 			printf("received /osc-test\n");
@@ -346,6 +345,11 @@ int parseMessage(oscpkt::Message msg, void*)
 
 int main(int main_argc, char *main_argv[])
 {
+	if(0 == gDisplays.size())
+	{
+		fprintf(stderr, "No displays in gDisplays\n");
+		return 1;
+	}
 #ifdef I2C_MUX
 	if(gTca.initI2C_RW(gI2cBus, gMuxAddress, -1) || gTca.select(-1))
 	{
@@ -353,24 +357,39 @@ int main(int main_argc, char *main_argv[])
 		return 1;
 	}
 #endif // I2C_MUX
+	for(unsigned int n = 0; n < gDisplays.size(); ++n)
+	{
+		switchTarget(n);
+		U8G2& u8g2 = gDisplays[gActiveTarget].d;
+#ifndef I2C_MUX
+		int mux = gDisplays[gActiveTarget].mux;
+		if(-1 != mux)
+		{
+			fprintf(stderr, "Display %u requires mux %d but I2C_MUX is disabled\n", n, mux);
+			return 1;
+		}
+#endif // I2C_MUX
+		u8g2.initDisplay();
+		u8g2.setPowerSave(0);
+		u8g2.clearBuffer();
+		u8g2.setFont(u8g2_font_4x6_tf);
+		u8g2.setFontRefHeightText();
+		u8g2.setFontPosTop();
+		u8g2.drawStr(0, 0, " ____  _____ _        _");
+		u8g2.drawStr(0, 7, "| __ )| ____| |      / \\");
+		u8g2.drawStr(0, 14, "|  _ \\|  _| | |     / _ \\");
+		u8g2.drawStr(0, 21, "| |_) | |___| |___ / ___ \\");
+		u8g2.drawStr(0, 28, "|____/|_____|_____/_/   \\_\\");
+		if(gDisplays.size() > 1)
+		{
+			std::string targetString = "Target ID: " + std::to_string(n);
+			u8g2.drawStr(0, 50, targetString.c_str());
+		}
+		u8g2.sendBuffer();
+	}
 	// Set up interrupt handler to catch Control-C and SIGTERM
 	signal(SIGINT, interrupt_handler);
 	signal(SIGTERM, interrupt_handler);
-
-	u8g2.setI2CAddress(gOledAddress);
-	u8g2.initDisplay();
-	u8g2.setPowerSave(0);
-	u8g2.clearBuffer();
-	u8g2.setFont(u8g2_font_4x6_tf);
-	u8g2.setFontRefHeightText();
-	u8g2.setFontPosTop();
-	u8g2.drawStr(0, 0, " ____  _____ _        _");
-	u8g2.drawStr(0, 7, "| __ )| ____| |      / \\");
-	u8g2.drawStr(0, 14, "|  _ \\|  _| | |     / _ \\");
-	u8g2.drawStr(0, 21, "| |_) | |___| |___ / ___ \\");
-	u8g2.drawStr(0, 28, "|____/|_____|_____/_/   \\_\\");
-	u8g2.sendBuffer();
-
 	// OSC
 	oscReceiver.setup(gLocalPort, parseMessage);
 	while(!gStop)
