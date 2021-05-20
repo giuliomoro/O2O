@@ -18946,26 +18946,6 @@ class U8G2_S1D15721_240X64_F_8080 : public U8G2 {
 
 #endif // U8X8_USE_PINS
 
-#ifdef __linux__
-extern "C" uint8_t u8x8_byte_linux_i2c(U8X8_UNUSED u8x8_t *u8x8, U8X8_UNUSED uint8_t msg, U8X8_UNUSED uint8_t arg_int, U8X8_UNUSED void *arg_ptr);
-extern "C" uint8_t u8x8_linux_i2c_delay (u8x8_t * u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
-
-class U8G2_SH1106_128X64_NONAME_F_HW_I2C_LINUX : public U8G2 {
-  public: U8G2_SH1106_128X64_NONAME_F_HW_I2C_LINUX(const u8g2_cb_t *rotation, uint8_t bus, uint8_t address) : U8G2() {
-    u8g2_Setup_sh1106_i2c_128x64_noname_f(&u8g2, rotation, u8x8_byte_linux_i2c, u8x8_linux_i2c_delay);
-    setI2CBus(bus);
-    setI2CAddress(address);
-  }
-};
-class U8G2_SSD1306_128X64_NONAME_F_HW_I2C_LINUX : public U8G2 {
-  public: U8G2_SSD1306_128X64_NONAME_F_HW_I2C_LINUX(const u8g2_cb_t *rotation, uint8_t bus, uint8_t address) : U8G2() {
-    u8g2_Setup_ssd1306_i2c_128x64_noname_f(&u8g2, rotation, u8x8_byte_linux_i2c, u8x8_linux_i2c_delay);
-    setI2CBus(bus);
-    setI2CAddress(address);
-  }
-};
-#endif // __linux__
-
 class U8G2_BITMAP : public U8G2 {
   public: U8G2_BITMAP(uint16_t pixel_width, uint16_t pixel_height, const u8g2_cb_t *rotation) {
     u8g2_SetupBitmap(getU8g2(), rotation, pixel_width, pixel_height);
