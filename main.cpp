@@ -91,7 +91,7 @@ times a second.
 #include <signal.h>
 #include <libraries/OscReceiver/OscReceiver.h>
 #include <unistd.h>
-#include "u8g2/cppsrc/U8g2lib.h"
+#include "u8g2/U8g2LinuxI2C.h"
 #include <vector>
 #include <algorithm>
 
