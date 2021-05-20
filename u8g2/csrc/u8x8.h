@@ -353,6 +353,9 @@ struct u8x8_struct
 #ifdef U8X8_USE_PINS 
   uint8_t pins[U8X8_PIN_CNT];	/* defines a pinlist: Mainly a list of pins for the Arduino Envionment, use U8X8_PIN_xxx to access */
 #endif
+#ifdef __linux__
+  void* private_state;
+#endif // __linux__
 };
 
 #ifdef U8X8_WITH_USER_PTR

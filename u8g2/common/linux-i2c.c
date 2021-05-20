@@ -10,7 +10,7 @@
 #include <time.h>
 #include <u8x8.h>
 #include <unistd.h>
-
+#include <stdlib.h>
 
 #define BUFSIZ_I2C 32
 
@@ -18,8 +18,11 @@ char filename[255];
 uint8_t data[BUFSIZ_I2C]; // just to be sure
 int idx = 0;
 // almost certainly the wrong place for this state!
-int file = -1;
 int adapter_nr = 1; /* probably dynamically determined */
+
+typedef struct {
+    int file;
+} LinuxI2cPrivate_t;
 
 uint8_t
 u8x8_byte_linux_i2c(u8x8_t *u8x8,
@@ -37,14 +40,23 @@ u8x8_byte_linux_i2c(u8x8_t *u8x8,
 		break;
 	case U8X8_MSG_BYTE_INIT:
 	{
+                //TODO: ensure we free resources if this is a repeated init
+                //TOOD: add cleanup
+                LinuxI2cPrivate_t* ptr = calloc(1, sizeof(LinuxI2cPrivate_t));
+                if(!ptr) {
+                    fprintf(stderr, "Cannot allocate memory for LinuxI2cPrivate_t\n");
+                    return 1;
+                }
+                u8x8->private_state = ptr;
 		int addr = u8x8_GetI2CAddress(u8x8);
 		// ths open/setup? it seems to be a one-time setup
 		snprintf(filename, 19, "/dev/i2c-%d", adapter_nr);
-		file = open(filename, O_RDWR);
+		int file = open(filename, O_RDWR);
 		if (file < 0) {
 			fprintf(stderr, "can't open i2c\n");
 			return(errno); 
 		}
+                ptr->file = file;
 		fprintf(stderr, "opened i2c file %d\n", file);
 		if (ioctl(file, I2C_SLAVE, addr) < 0) { // u8x8_GetI2CAddress(u8x8)
 			fprintf(stderr, "can't set addr %0x\n", addr);
@@ -66,7 +78,8 @@ u8x8_byte_linux_i2c(u8x8_t *u8x8,
 		//fprintf(stderr, "++ end transfer, sending cmd %0x %0x count %d\n", data[0], data[1], idx);
 		// NB! note the extre _i2c_ in there! leave that out and you are screwed
 		errno = 0;
-		if (write(file, data, idx) != idx) {
+               LinuxI2cPrivate_t* ptr = u8x8->private_state;
+		if (write(ptr->file, data, idx) != idx) {
 		//if (i2c_smbus_write_i2c_block_data(file, data[0], idx - 1, &data[1]) < 0) {
 			fprintf(stderr, "can't write cmd %0x: %s\n", data[0], strerror(errno));
 			return(errno); 
