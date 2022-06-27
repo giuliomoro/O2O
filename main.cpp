@@ -146,7 +146,7 @@ static void switchTarget(int target)
 	gActiveTarget = target;
 }
 
-int parseMessage(oscpkt::Message msg, void*)
+int parseMessage(oscpkt::Message msg, const char* address, void*)
 {
 	float param1Value;
 	float param2Value;
@@ -159,6 +159,7 @@ int parseMessage(oscpkt::Message msg, void*)
 		kInvalidMode,
 		kOutOfRange,
 	} error = kOk;
+	printf("Message from %s\n", address);
 	bool stateMessage = false;
 	// check state (non-display) messages first
 	if (msg.match("/target")) {
