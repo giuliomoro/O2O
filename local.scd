@@ -1,4 +1,4 @@
-~displayOSC = NetAddr.new("192.168.7.2", 7562);
+~displayOSC = NetAddr.new("bela.local", 7562);
 // /targetMode can be:
 // * 0: single-display mode
 // * 1: each mode, the first argument to each message is the target display

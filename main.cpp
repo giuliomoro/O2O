@@ -50,7 +50,7 @@ we'll talk through now.
 This is just to test whether the OSC link with Bela is functioning. When this message
 is received you will see "OSC TEST SUCCESS!" printed on the screen. In the PD patch
 click the bang on the left hand side. If you don't see anything change on the screen
-then try clicking the `connect 192.168.6.2 7562` again to reestablish the connection.
+then try clicking the `connect bela.local 7562` again to reestablish the connection.
 Note that you will have to do this every time the Bela programme restarts.
 
 /number

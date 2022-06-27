@@ -5,7 +5,7 @@
 #X obj 321 642 list prepend send;
 #X obj 321 663 list trim;
 #X obj 210 692 netsend -u -b;
-#X msg 182 607 connect 192.168.6.2 7562;
+#X msg 182 607 connect bela.local 7562;
 #X obj 584 299 line;
 #X obj 660 298 line;
 #X msg 660 276 0 \, 1 1500;
