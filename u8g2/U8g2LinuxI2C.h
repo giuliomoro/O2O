@@ -28,3 +28,9 @@ class U8G2_SSD1306_128X64_NONAME_F_HW_I2C_LINUX : public U8G2LinuxI2C {
     U8G2LinuxI2C(rotation, bus, address, u8g2_Setup_ssd1306_i2c_128x64_noname_f)
   { }
 };
+
+class U8G2_SSD1309_128X64_NONAME2_F_HW_I2C_LINUX : public U8G2LinuxI2C {
+  public: U8G2_SSD1309_128X64_NONAME2_F_HW_I2C_LINUX(const u8g2_cb_t *rotation, uint8_t bus, uint8_t address) :
+    U8G2LinuxI2C(rotation, bus, address, u8g2_Setup_ssd1309_i2c_128x64_noname2_f)
+  { }
+};
