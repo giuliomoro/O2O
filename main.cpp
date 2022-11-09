@@ -98,6 +98,10 @@ times a second.
 #include <sstream>
 #include <iomanip>
 #include <MiscUtilities.h>
+#include <mutex>
+
+std::mutex mtx;
+std::vector<bool> gShouldSend;
 
 const unsigned int gI2cBus = 1;
 
@@ -218,6 +222,8 @@ int parseMessage(oscpkt::Message msg, const char* address, void*)
 
 	// code below MUST use msg.match() to check patterns and args.pop... or args.is ... to check message content.
 	// this way, anything popped above (if we are in kTargetEach mode), won't be re-used below
+	mtx.lock();
+	gShouldSend.resize(gDisplays.size());
 	if(error || stateMessage) {
 		// nothing to do here, just avoid matching any of the others
 	} else if (msg.match("/osc-test"))
@@ -476,6 +482,7 @@ int parseMessage(oscpkt::Message msg, const char* address, void*)
 		}
 	} else
 		error = kUnmatchedPattern;
+	int ret = 0;
 	if(error)
 	{
 		std::string str;
@@ -497,13 +504,14 @@ int parseMessage(oscpkt::Message msg, const char* address, void*)
 				break;
 		}
 		fprintf(stderr, "An error occurred with message to: %s: %s\n", msg.addressPattern().c_str(), str.c_str());
-		return 1;
+		ret = 1;
 	} else
 	{
 		if(!stateMessage)
-			u8g2.sendBuffer();
+			gShouldSend[gActiveTarget] = true;
 	}
-	return 0;
+	mtx.unlock();
+	return ret;
 }
 
 int main(int main_argc, char *main_argv[])
@@ -557,7 +565,20 @@ int main(int main_argc, char *main_argv[])
 	oscReceiver.setup(gLocalPort, parseMessage);
 	while(!gStop)
 	{
-		usleep(100000);
+		mtx.lock();
+		bool sent = false;
+		for(size_t n = 0; n < gShouldSend.size(); ++n)
+		{
+			if(gShouldSend[n])
+			{
+				gDisplays[n].d.sendBuffer();
+				gShouldSend[n] = false;
+				sent = true;
+			}
+		}
+		mtx.unlock();
+		if(!sent)
+			usleep(50000);
 	}
 	return 0;
 }
