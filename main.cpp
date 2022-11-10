@@ -198,6 +198,7 @@ int parseMessage(oscpkt::Message msg, const char* address, void*)
 		fprintf(stderr, "Target %u out of range. Only %u displays are available\n", gActiveTarget, gDisplays.size());
 		return 1;
 	}
+	mtx.lock();
 	U8G2& u8g2 = gDisplays[gActiveTarget].d;
 	u8g2.clearBuffer();
 	int displayWidth = u8g2.getDisplayWidth();
@@ -218,7 +219,6 @@ int parseMessage(oscpkt::Message msg, const char* address, void*)
 
 	// code below MUST use msg.match() to check patterns and args.pop... or args.is ... to check message content.
 	// this way, anything popped above (if we are in kTargetEach mode), won't be re-used below
-	mtx.lock();
 	gShouldSend.resize(gDisplays.size());
 	if(error || stateMessage) {
 		// nothing to do here, just avoid matching any of the others
