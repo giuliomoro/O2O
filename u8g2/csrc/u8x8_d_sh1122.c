@@ -32,8 +32,11 @@
   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
 
 
-  Copied from sh1122 mostly because of the similar RAM architecture.
-  However: Commands are very different!
+  Idea: SH1122 is a horizontal device, which doesn't support u8x8
+  However in the similar SSD1362 device, we do the correct tile conversion,
+    so maybe takeover code from SSD1362 to SH1122, so that SH1122 can also
+    support u8x8
+
   
 */
 #include "u8x8.h"
@@ -147,7 +150,7 @@ uint8_t u8x8_d_sh1122_common(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *a
     case U8X8_MSG_DISPLAY_DRAW_TILE:
       u8x8_cad_StartTransfer(u8x8);
       x = ((u8x8_tile_t *)arg_ptr)->x_pos;    
-      x *= 2;		// only every 4th col can be addressed
+      x *= 2;		// 4 Mar 2022: probably this needs to be 4, but this device is call with x=0 only
       x += u8x8->x_offset;		
     
       y = (((u8x8_tile_t *)arg_ptr)->y_pos);
