@@ -1,5 +1,6 @@
 #pragma once
 #include <I2c.h>
+#include <stdexcept>
 
 class TCA9548A : public I2c
 {
