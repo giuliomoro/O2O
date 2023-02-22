@@ -414,6 +414,8 @@ void u8g2_ClearDisplay(u8g2_t *u8g2);
 #define u8g2_GetDisplayWidth(u8g2) ((u8g2)->width)
 #define u8g2_GetDrawColor(u8g2) ((u8g2)->draw_color)
 
+#define u8g2_SetI2CBus(u8g2, bus) ((u8g2_GetU8x8(u8g2))->i2c_bus = (bus))
+#define u8g2_GetI2CBus(u8g2) u8x8_GetI2CBus(u8g2_GetU8x8(u8g2))
 #define u8g2_GetI2CAddress(u8g2)   u8x8_GetI2CAddress(u8g2_GetU8x8(u8g2))
 #define u8g2_SetI2CAddress(u8g2, address) ((u8g2_GetU8x8(u8g2))->i2c_address = (address))
 

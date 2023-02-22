@@ -77,6 +77,7 @@ class U8G2
     void setBusClock(uint32_t clock_speed) { u8g2_GetU8x8(&u8g2)->bus_clock = clock_speed; }
 
     void setI2CAddress(uint8_t adr) { u8g2_SetI2CAddress(&u8g2, adr); }
+    void setI2CBus(uint8_t bus) { u8g2_SetI2CBus(&u8g2, bus); }
     
     
     void enableUTF8Print(void) { cpp_next_cb = u8x8_utf8_next; }
