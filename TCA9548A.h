@@ -12,7 +12,6 @@ public:
 			throw std::runtime_error("Unable to open TCA9548A. Ensure the multiplexer is connected"
 			"and the bus and address are correct.");
 	}
-	int readI2C() override {return 0;};
 	int select(int channel)
 	{
 		i2c_char_t byte = channel < 0 || channel >= 8 ? 0 : 1 << channel;

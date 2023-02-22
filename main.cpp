@@ -136,12 +136,10 @@ static void switchTarget(int target)
 #ifdef I2C_MUX
 	if(target >= gDisplays.size())
 		return;
-	U8G2& u8g2 = gDisplays[target].d;
 	int mux = gDisplays[target].mux;
 	static int oldMux = -1;
 	if(oldMux != mux)
 		gTca.select(mux);
-	oldTarget = target;
 #endif // I2C_MUX
 	gActiveTarget = target;
 }
