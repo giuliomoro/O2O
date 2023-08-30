@@ -202,11 +202,6 @@ int parseMessage(oscpkt::Message msg, const char* address, void*)
 		fprintf(stderr, "Target %u out of range. Only %u displays are available\n", gActiveTarget, gDisplays.size());
 		return 1;
 	}
-	mtx.lock();
-	U8G2& u8g2 = gDisplays[gActiveTarget].d;
-	u8g2.clearBuffer();
-	int displayWidth = u8g2.getDisplayWidth();
-	int displayHeight = u8g2.getDisplayHeight();
 	if(!stateMessage && kTargetEach == gTargetMode)
 	{
 		// if we are in kTargetEach and the message is for a display, we need to peel off the
@@ -220,6 +215,11 @@ int parseMessage(oscpkt::Message msg, const char* address, void*)
 			error = kWrongArguments;
 		}
 	}
+	mtx.lock();
+	U8G2& u8g2 = gDisplays[gActiveTarget].d;
+	u8g2.clearBuffer();
+	int displayWidth = u8g2.getDisplayWidth();
+	int displayHeight = u8g2.getDisplayHeight();
 
 	// code below MUST use msg.match() to check patterns and args.pop... or args.is ... to check message content.
 	// this way, anything popped above (if we are in kTargetEach mode), won't be re-used below
