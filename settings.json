@@ -13,7 +13,7 @@
     "--pga-gain-left": "10",
     "--pga-gain-right": "10",
     "user": "",
-    "make": "CFLAGS=-I$(PROJECT_DIR)/u8g2/csrc;\nCPPFLAGS=-I$(PROJECT_DIR)/u8g2/csrc;",
+    "make": "CFLAGS=-I$(PROJECT_DIR)/u8g2/csrc -DU8G2_USE_DYNAMIC_ALLOC;\nCPPFLAGS=-I$(PROJECT_DIR)/u8g2/csrc -DU8G2_USE_DYNAMIC_ALLOC;",
     "-X": "0",
     "audioExpander": "0",
     "-Y": "",

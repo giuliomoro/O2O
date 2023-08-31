@@ -535,6 +535,7 @@ int main(int main_argc, char *main_argv[])
 	{
 		switchTarget(n);
 		U8G2& u8g2 = gDisplays[gActiveTarget].d;
+		u8g2.setBufferPtr(new uint8_t[u8g2.getBufferSize()]);
 #ifndef I2C_MUX
 		int mux = gDisplays[gActiveTarget].mux;
 		if(-1 != mux)
@@ -582,6 +583,11 @@ int main(int main_argc, char *main_argv[])
 		mtx.unlock();
 		if(!sent)
 			usleep(50000);
+	}
+	for(auto& d : gDisplays)
+	{
+		U8G2& u8g2 = d.d;
+		delete[] u8g2.getBufferPtr();
 	}
 	return 0;
 }
