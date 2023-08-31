@@ -139,11 +139,14 @@ void interrupt_handler(int var)
 	gStop = true;
 }
 
-static void switchTarget(int target)
+static void switchTarget(unsigned int target)
 {
-#ifdef I2C_MUX
 	if(target >= gDisplays.size())
+	{
+		fprintf(stderr, "Invalid target %d\n", target);
 		return;
+	}
+#ifdef I2C_MUX
 	int mux = gDisplays[target].mux;
 	static int oldMux = -1;
 	if(oldMux != mux)
