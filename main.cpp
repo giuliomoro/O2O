@@ -446,7 +446,14 @@ int main(int main_argc, char *main_argv[])
 	oscReceiver.setup(gLocalPort, parseMessage);
 	while(!gStop)
 	{
-		usleep(100000);
+		// ping the internet and display the result on screen
+		int ret = system("ping -c 1 google.com\n");
+		printf("System returned %d\n", ret);
+		oscpkt::Message msg("/display-text");
+		for(size_t n = 0; n < 3; ++n)
+			msg.pushStr(0 == ret ? "ok" : "OFFLINE");
+		parseMessage(msg, "localhost", NULL);
+		usleep(1000000);
 	}
 	return 0;
 }
