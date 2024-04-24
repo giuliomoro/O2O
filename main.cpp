@@ -270,7 +270,7 @@ int parseMessage(oscpkt::Message msg, const char* address, void*)
 				std::string str;
 				args.popStr(str);
 				// Pd cannot send \n, but will send a literal \\n
-				if(str == "\\n")
+				if("\\n" == str || "\n" == str || "\n\r" == str)
 					out << "\n"; // avoid whitespace at beginning of line
 				else
 					out << str << " ";
