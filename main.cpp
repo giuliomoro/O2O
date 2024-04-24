@@ -271,8 +271,9 @@ int parseMessage(oscpkt::Message msg, const char* address, void*)
 				args.popStr(str);
 				// Pd cannot send \n, but will send a literal \\n
 				if(str == "\\n")
-					str = "\n";
-				out << str << " ";
+					out << "\n"; // avoid whitespace at beginning of line
+				else
+					out << str << " ";
 			} else if(args.isInt32())
 			{
 				int32_t num;
