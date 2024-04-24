@@ -291,7 +291,7 @@ int parseMessage(oscpkt::Message msg, const char* address, void*)
 			error = kWrongArguments;
 		if(kOk == error)
 		{
-			printf("received /display-strings-and-numbers _%s_\n", out.str().c_str());
+			size_t len = printf("received /display-strings-and-numbers: ");
 			auto strs = StringUtils::split(out.str(), '\n', false, 3);
 			// remove last element if empty (bug in StringUtils::split())
 			if(strs.size() && !strs.back().size())
@@ -306,7 +306,12 @@ int parseMessage(oscpkt::Message msg, const char* address, void*)
 					u8g2.setFont(u8g2_font_8x13_tf);
 				u8g2.setFontRefHeightText();
 				for(size_t n = 0; n < strs.size(); ++n)
+				{
+					if(0 != n)
+						printf("%*s", len, " ");
+					printf("|%s\n", strs[n].c_str());
 					u8g2.drawUTF8(0, displayHeight * float(n + 1) / (strs.size() + 1), strs[n].c_str());
+				}
 			}
 		}
 	} else if (msg.match("/parameters"))
