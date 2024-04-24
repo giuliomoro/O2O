@@ -94,6 +94,9 @@ times a second.
 #include "u8g2/U8g2LinuxI2C.h"
 #include <vector>
 #include <algorithm>
+#include <sstream>
+#include <iomanip>
+#include <MiscUtilities.h>
 
 const unsigned int gI2cBus = 1;
 
@@ -255,6 +258,55 @@ int parseMessage(oscpkt::Message msg, const char* address, void*)
 			u8g2.drawUTF8(displayWidth * 0.5, displayHeight * 0.25, ctrStr1);
 			u8g2.drawUTF8(displayWidth * 0.5, displayHeight * 0.5, ctrStr2);
 			u8g2.drawUTF8(displayWidth * 0.5, displayHeight * 0.75, ctrStr3);
+		}
+	} else if (msg.match("/display-strings-and-numbers"))
+	{
+		// send a mix of strings and numbers with explicit newline characters
+		std::stringstream out;
+		while(args.nbArgRemaining() && args.isOk() && kOk == error)
+		{
+			if(args.isStr())
+			{
+				std::string str;
+				args.popStr(str);
+				// Pd cannot send \n, but will send a literal \\n
+				if(str == "\\n")
+					str = "\n";
+				out << str << " ";
+			} else if(args.isInt32())
+			{
+				int32_t num;
+				args.popInt32(num);
+				out << std::fixed << std::setprecision(0) << num << " ";
+			} else if(args.isNumber())
+			{
+				double num;
+				args.popNumber(num);
+				out << std::fixed << std::setprecision(2) << num << " ";
+			} else
+				error = kWrongArguments;
+		}
+		if(!args.isOkNoMoreArgs())
+			error = kWrongArguments;
+		if(kOk == error)
+		{
+			printf("received /display-strings-and-numbers _%s_\n", out.str().c_str());
+			auto strs = StringUtils::split(out.str(), '\n', false, 3);
+			// remove last element if empty (bug in StringUtils::split())
+			if(strs.size() && !strs.back().size())
+				strs.resize(strs.size() - 1);
+			if(strs.size())
+			{
+				if(3 == strs.size())
+					u8g2.setFont(u8g2_font_4x6_tf);
+				else if(2 == strs.size())
+					u8g2.setFont(u8g2_font_6x10_tf);
+				else if(1 == strs.size())
+					u8g2.setFont(u8g2_font_8x13_tf);
+				u8g2.setFontRefHeightText();
+				for(size_t n = 0; n < strs.size(); ++n)
+					u8g2.drawUTF8(displayWidth, displayHeight * float(n + 1) / (strs.size() + 1), strs[n].c_str());
+			}
 		}
 	} else if (msg.match("/parameters"))
 	{
