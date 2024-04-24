@@ -94,6 +94,7 @@ times a second.
 #include "u8g2/U8g2LinuxI2C.h"
 #include <vector>
 #include <algorithm>
+#include <cmath>
 #include <sstream>
 #include <iomanip>
 #include <MiscUtilities.h>
@@ -368,6 +369,110 @@ int parseMessage(oscpkt::Message msg, const char* address, void*)
 				unsigned int y = values[valIdx] * displayHeight;
 				u8g2.drawPixel(x, y);
 			}
+		}
+	} else if (msg.partialMatch("/points/"))
+	{
+		// TODO: these static variables could/should be per-display
+		static std::vector<unsigned int> values(displayWidth * displayHeight);
+		static int persistence = 1;
+		static int size = 1;
+		int nArgs = args.nbArgRemaining();
+		bool shouldDraw = false;
+		if(msg.match("/points/clear"))
+		{
+			if(args.isOkNoMoreArgs())
+			{
+				shouldDraw = true;
+				for(auto& n : values)
+					n = 0;
+			} else
+				error = kWrongArguments;
+		} else if(msg.match("/points/persistence"))
+		{
+			if(!args.popNumber(persistence).isOkNoMoreArgs())
+				error = kWrongArguments;
+			if(persistence < 1)
+				persistence = 1;
+		} else if(msg.match("/points/size"))
+		{
+			if(!args.popNumber(size).isOkNoMoreArgs())
+				error = kWrongArguments;
+			if(size < 1)
+				size = 1;
+		} else if(msg.match("/points/tick"))
+		{
+			// do nothing, just keep processing the animation
+			if(args.isOkNoMoreArgs())
+				shouldDraw = true;
+			else
+				error = kWrongArguments;
+		} else if(msg.match("/points/values-rel") || msg.match("/points/values-px"))
+		{
+			bool relative = msg.match("/points/values-rel");
+			size_t numPoints = args.nbArgRemaining() / 2;
+			// retrieve x y pairs
+			for(size_t n = 0; n < numPoints; ++n)
+			{
+				double x;
+				double y;
+				if(!args.popNumber(x).popNumber(y).isOk())
+				{
+					error = kWrongArguments;
+					break;
+				}
+				int px = x;
+				int py = y;
+				if(relative)
+				{
+					// convert from relative values to pixel coordinates
+					px = std::round(x * (displayWidth - 1));
+					py = std::round(y * (displayHeight - 1));
+				}
+				if(px < 0 || px >= displayWidth || py < 0 || py >= displayHeight)
+				{
+					printf("Point out of range: (%d, %d) [%d, %d]\n",
+						       px, py, displayWidth, displayHeight);
+					continue;
+				}
+				for(size_t pxx = px; pxx < px + size && pxx < displayWidth; pxx++)
+				{
+					for(size_t pyy = py; pyy < py + size && pyy < displayHeight; pyy++)
+						values[pxx * displayHeight + pyy] = persistence;
+				}
+			}
+			shouldDraw = true;
+		} else
+			error = kUnmatchedPattern;
+		if(kOk == error)
+			printf("received %s with %d arguments: OK\n", msg.addressPattern().c_str(), nArgs);
+		if(kOk == error && shouldDraw)
+		{
+			// draw the bitmap:
+#ifdef PRINT_POINTS
+			std::string out;
+			out.reserve(displayHeight * displayWidth + displayHeight);
+#endif // PRINT_POINTS
+			for(unsigned int py = 0; py < displayHeight; ++py)
+			{
+				for(unsigned int px = 0; px < displayWidth; ++px)
+				{
+					size_t idx = px * displayHeight + py;
+#ifdef PRINT_POINTS
+					out.push_back(values[idx] ? 'X' : '.');
+#endif // PRINT_POINTS
+					if(values[idx])
+					{
+						u8g2.drawPixel(px, py);
+						values[idx]--;
+					}
+				}
+#ifdef PRINT_POINTS
+				out.push_back('\n');
+#endif // PRINT_POINTS
+			}
+#ifdef PRINT_POINTS
+			printf("%s", out.c_str());
+#endif // PRINT_POINTS
 		}
 	} else
 		error = kUnmatchedPattern;
