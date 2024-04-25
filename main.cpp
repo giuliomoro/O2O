@@ -444,16 +444,27 @@ int main(int main_argc, char *main_argv[])
 	signal(SIGTERM, interrupt_handler);
 	// OSC
 	oscReceiver.setup(gLocalPort, parseMessage);
+	std::vector<std::string> servers = {
+		"google.com",
+		"github.com",
+	};
 	while(!gStop)
 	{
+		usleep(1000000);
 		// ping the internet and display the result on screen
-		int ret = system("ping -c 1 google.com\n");
-		printf("System returned %d\n", ret);
 		oscpkt::Message msg("/display-text");
 		for(size_t n = 0; n < 3; ++n)
-			msg.pushStr(0 == ret ? "ok" : "OFFLINE");
+		{
+			if(n < servers.size())
+			{
+				int ret = system(("ping -c 1 " + servers[n] + "\n").c_str());
+				printf("Ping %s returned %d\n", servers[n].c_str(), ret);
+				msg.pushStr(0 == ret ? "OK: " + servers[n] : "OFFLINE");
+			} else {
+				msg.pushStr("_");
+			}
+		}
 		parseMessage(msg, "localhost", NULL);
-		usleep(1000000);
 	}
 	return 0;
 }
